@@ -2,42 +2,44 @@ import RPi.GPIO as GPIO
 import time
 
 
-def Distance(SIG=15):
+def Distance(TRIG=23, ECHO=24):
     '''
     arguments:
-    
-    SIG: pin at which ultrasonic sensor is set, by default value is 15
+
+    TRIG: trigger pin for the HC-SR04 ultrasonic sensor, by default value is 23
+    ECHO: echo pin for the HC-SR04 ultrasonic sensor, by default value is 24
     '''
     GPIO.setmode(GPIO.BCM)
-    
-    #intialisation in case sensor won't work 
+
+    # initialization in case sensor won't work
     start = time.time()
     end = time.time()
-    
-    GPIO.setup(SIG,GPIO.OUT)
 
-    GPIO.output(SIG,GPIO.LOW)
+    # setting the trigger and echo pins as output and input respectively
+    GPIO.setup(TRIG, GPIO.OUT)
+    GPIO.setup(ECHO, GPIO.IN)
 
+    # sending trigger signal
+    GPIO.output(TRIG, GPIO.LOW)
     time.sleep(0.0002)
+    GPIO.output(TRIG, GPIO.HIGH)
+    time.sleep(0.00001)
+    GPIO.output(TRIG, GPIO.LOW)
 
-    GPIO.output(SIG,GPIO.HIGH)
-    time.sleep(0.000001)
-    GPIO.output(SIG,GPIO.LOW)
-
-    GPIO.setup(SIG,GPIO.IN)
-
-    while GPIO.input(SIG)==0:
+    # calculating time for echo to return
+    while GPIO.input(ECHO) == 0:
         start = time.time()
 
-    while GPIO.input(SIG)==1:
+    while GPIO.input(ECHO) == 1:
         end = time.time()
 
     sig_time = end - start
 
+    # calculating distance from time
     distance = sig_time / 0.000058
-    GPIO.cleanup(SIG)
-    
-    #print('Object is at {} cm'.format(round(distance),4))
+    GPIO.cleanup()
+
+    # print('Object is at {} cm'.format(round(distance),4))
     return distance
 
 
@@ -45,11 +47,9 @@ if __name__ == '__main__':
     try:
         while True:
             dist = Distance()
-            print ("Measured Distance = %.1f cm" % dist)
+            print("Measured Distance = %.1f cm" % dist)
             time.sleep(1)
- 
+
         # Reset by pressing CTRL + C
     except KeyboardInterrupt:
         print("Measurement stopped by User")
-        
-
